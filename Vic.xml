@@ -8,7 +8,7 @@
 				Vic.OnLoad()
 			</OnLoad>
 			<OnEvent>
-				Vic[event](...)
+				Vic[event](self, ...)
 			</OnEvent>
 		</Scripts>
 	</Frame>
