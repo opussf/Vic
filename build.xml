@@ -27,7 +27,7 @@
 				<include name="Readme.txt"/>
 			</fileset>
 			<filterset>
-				<filter token="VERSION" value="${Rested.version} (${build.number})"/>
+				<filter token="VERSION" value="${Vic.version} (${build.number})"/>
 			</filterset>
 		</copy>
 		<zip 	destfile="dest/${project.zip}"
