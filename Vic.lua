@@ -11,9 +11,13 @@ COLOR_NEON_BLUE = "|cff4d4dff";
 COLOR_END = "|r";
 
 Vic = {};
+Vic_options = {["enabled"] = true,};
 
 function Vic.OnLoad()
 	VicFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+	
+	SLASH_VIC1 = "/vic";
+	SlashCmdList["VIC"] = function(msg) Vic.Command(msg); end
 end
 
 function Vic.PartyPrint( msg )
@@ -42,7 +46,7 @@ function Vic.COMBAT_LOG_EVENT_UNFILTERED(...)
 	_, _, Vic.event = select(1, ...);  -- frame, ts, event
 	local _, srcName, _, _, _, _, spellID, spellName = select(4, ...);
 	--local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
-	if (spellID == 32216) then
+	if (Vic_options.enabled and spellID == 32216) then
 		if (string.find(Vic.event, "SPELL_AURA_APPLIED")) then
 			Vic.PartyPrint(spellName.." applied to "..srcName);
 		elseif (string.find(Vic.event, "SPELL_AURA_REFRESH")) then
@@ -52,5 +56,48 @@ function Vic.COMBAT_LOG_EVENT_UNFILTERED(...)
 		else
 			Vic.Print(Vic.event.." :: "..spellName);
 		end
+	end
+end
+
+Vic.commands = {
+	["enable"] = {
+		["func"] = function()
+				Vic_options.enabled = true;
+				Vic.Print("Vic is now enabled.");
+			end,
+		["help"] = "Enable",
+	},
+	["disable"] = {
+		["func"] = function()
+				Vic_options.enabled = nil;
+				Vic.Print("Vic is now disabled.");
+			end,
+		["help"] = "Disable",
+	},
+	["status"] = {
+		["func"] = function()
+				outStr = "disabled.";
+				outStr = Vic_options.enabled and "enabled.";
+				Vic.Print("Vic status is "..outStr);
+			end,
+		["help"] = "Show status",
+	},
+	["help"] = {
+		["func"] = function()
+				for k, val in pairs(Vic.commands) do
+					Vic.Print(string.format("%s %-8s -> %s", SLASH_VIC1, k, val.help));
+				end
+			end,
+		["help"] = "Print this help.",
+	},
+}
+
+function Vic.Command(msg)
+	msg = string.lower(msg);
+	func = Vic.commands[msg].func;
+	if func then
+		func();
+	else
+		Vic.help.func();
 	end
 end

@@ -4,6 +4,7 @@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: reports when Victorious is on a warrior tank
+## SavedVariables: Vic_options
 
 Vic.lua
 Vic.xml
