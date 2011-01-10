@@ -1,0 +1,9 @@
+## Interface: 40000
+## Title: Victorious Reporter
+## Notes: reports when Victorious is on a warrior tank
+## Author: sistersally of hyjal
+## Version: @VERSION@
+## Description: reports when Victorious is on a warrior tank
+
+Vic.lua
+Vic.xml
