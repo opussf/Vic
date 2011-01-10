@@ -40,12 +40,17 @@ end
 function Vic.COMBAT_LOG_EVENT_UNFILTERED(...)
 	-- http://www.wowwiki.com/API_COMBAT_LOG_EVENT
 	_, _, Vic.event = select(1, ...);  -- frame, ts, event
---	if (strfind(event, "DAMAGE")) then
-	if (strsub(Hitlist.event, -6) == "DAMAGE") then
-		local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
-		Hitlist.damageDone( srcName, srcGUID, srcFlags, targetName, targetGUID, targetFlags );
-	elseif (Hitlist.event == "UNIT_DIED") then
-		local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
-		Hitlist.OnUNIT_DIED( targetGUID, targetName );
+	local _, srcName, _, _, _, _, spellID, spellName = select(4, ...);
+	--local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
+	if (spellID == 32216) then
+		if (string.find(Vic.event), "SPELL_AURA_APPLIED") then
+			Vic.PartyPrint(spellName.." applied to "..srcName);
+		elseif (string.find(Vic.event), "SPELL_AURA_REFRESH") then
+			Vic.PartyPrint(spellName.." refreshed on "..srcName);
+		elseif (string.find(Vic.event), "SPELL_AURA_REMOVED") then
+			Vic.PartyPrint(spellName.." removed from "..srcName);
+		else
+			Vic.Print(Vic.event.." :: "..spellName);
+		end
 	end
 end
