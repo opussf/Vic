@@ -1,0 +1,59 @@
+<project name="Vic" default="package">
+
+	<target name="init">
+		<tstamp/>
+		<buildnumber/>
+		<!--
+		<property environment="env"/>
+		<property name="build.number" value="${env.BUILD_NUMBER}"/>
+		-->
+		<property file="build.properties"/>
+		<property name="project.zip" value="${ant.project.name}_${Vic.version}_${build.number}.zip"/>
+	</target>
+
+	<target name="clean" description="Cleans old builds">
+		<delete dir="build" verbose="true"/>
+		<delete dir="dest" verbose="true"/>
+	</target>
+
+	<target name="package" depends="init">
+		<mkdir	dir="build/${ant.project.name}"/>
+		<mkdir	dir="dest"/>
+		<copy 	todir="build/${ant.project.name}">
+			<fileset dir=".">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="${ant.project.name}.xml"/>
+				<include name="Readme.txt"/>
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${Rested.version} (${build.number})"/>
+			</filterset>
+		</copy>
+		<zip 	destfile="dest/${project.zip}"
+				basedir="build"
+				includes="${ant.project.name}/**"/>
+		<delete dir="build" verbose="true"/>
+		<checksum file="dest/${project.zip}"
+				  property="zip.md5" />
+		<echo message="${zip.md5}" />
+	</target>
+	
+	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
+		<copy todir="${deploy.dir}">
+			<fileset dir="${deploy.from}">
+				<include name="*.zip"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy.check">
+		<condition property="deploy.run">
+			<and>
+				<available file="${deploy.from}" type="dir"/>
+				<available file="${deploy.dir}" type="dir"/>
+			</and>
+		</condition>
+	</target>
+
+</project>
