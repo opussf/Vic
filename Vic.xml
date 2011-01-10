@@ -1,0 +1,13 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+	<Script file="Vic.lua"/>
+	<!-- Version 2.0 -->
+	<Frame name="VicFrame"  frameStrata="BACKGROUND" toplevel="false" parent="UIParent">
+		<Scripts>
+			<OnEvent>
+				Vic[event](...);
+			</OnEvent>
+		</Scripts>
+	</Frame>
+</Ui>
+
