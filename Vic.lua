@@ -12,6 +12,16 @@ COLOR_END = "|r";
 
 Vic = {};
 Vic_options = {["enabled"] = true,};
+Vic.raidIconValues = {
+	["star"] = 1,
+	["circle"] = 2,
+	["diamond"] = 3,
+	["triangle"] = 4,
+	["moon"] = 5,
+	["square"] = 6,
+	["cross"] = 7,
+	["skull"] = 8,
+}
 
 function Vic.OnLoad()
 	VicFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
@@ -48,18 +58,30 @@ function Vic.COMBAT_LOG_EVENT_UNFILTERED(...)
 	--local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
 	if (Vic_options.enabled and spellID == 32216) then
 		if (string.find(Vic.event, "SPELL_AURA_APPLIED")) then
-			Vic.PartyPrint(spellName.." applied to "..srcName);
+			if Vic_options.symbol then
+				SetRaidTarget(srcName, Vic.raidIconValues[Vic_options.symbol]);
+			else
+				Vic.PartyPrint(spellName.." applied to "..srcName);
+			end
 		elseif (string.find(Vic.event, "SPELL_AURA_REFRESH")) then
-			Vic.PartyPrint(spellName.." refreshed on "..srcName);
+			if Vic_options.symbol then
+				SetRaidTarget(srcName, Vic.raidIconValues[Vic_options.symbol]);
+			else
+				Vic.PartyPrint(spellName.." refreshed on "..srcName);
+			end
 		elseif (string.find(Vic.event, "SPELL_AURA_REMOVED")) then
-			Vic.PartyPrint(spellName.." removed from "..srcName);
+			if Vic_options.symbol then
+				SetRaidTarget(srcName, 0);
+			else
+				Vic.PartyPrint(spellName.." removed from "..srcName);
+			end
 		else
 			Vic.Print(Vic.event.." :: "..spellName);
 		end
 	end
 end
 
-Vic.commands = {
+Vic.commandList = {
 	["enable"] = {
 		["func"] = function()
 				Vic_options.enabled = true;
@@ -79,25 +101,56 @@ Vic.commands = {
 				outStr = "disabled.";
 				outStr = Vic_options.enabled and "enabled.";
 				Vic.Print("Vic status is "..outStr);
+				if Vic_options.symbol then
+					Vic.Print("Vic will set {"..Vic_options.symbol.."} when active.");
+				else
+					Vic.Print("No symbol will be set.");
+				end
 			end,
 		["help"] = "Show status",
 	},
 	["help"] = {
 		["func"] = function()
-				for k, val in pairs(Vic.commands) do
+				for k, val in pairs(Vic.commandList) do
 					Vic.Print(string.format("%s %-8s -> %s", SLASH_VIC1, k, val.help));
 				end
 			end,
 		["help"] = "Print this help.",
 	},
+	["symbol"] = {
+		["func"] = function( param )
+				if Vic.raidIconValues[param] then
+					Vic_options.symbol = param;
+					Vic.Print("Symbol set to: {"..param.."}");
+				else
+					Vic_options.symbol = nil;
+					Vic.Print("No Symbol will be set");
+				end
+			end,
+		["help"] = "Sets the given symbol to put on the warrior.",
+	},
 }
 
 function Vic.Command(msg)
-	msg = string.lower(msg);
-	func = Vic.commands[msg].func;
-	if func then
-		func();
+	local cmd, param = Vic.ParseCmd(msg);
+	cmd = string.lower(cmd);
+	
+	local cmdFunc = Vic.commandList[cmd];
+	
+	if cmdFunc then
+		cmdFunc.func(param);
 	else
-		Vic.help.func();
+		Vic.commandList.help.func();
+	end
+end
+
+function Vic.ParseCmd(msg)
+	if msg then
+		local a,b,c = strfind(msg, "(%S+)");  --contiguous string of non-space characters
+		if a then
+			return c, strsub(msg, b+2);
+		else
+			return "";
+		end
 	end
 end
