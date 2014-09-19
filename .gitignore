@@ -1,2 +1,4 @@
+*.sublime*
+
 .svn
 target/
