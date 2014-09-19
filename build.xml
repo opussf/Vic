@@ -2,13 +2,11 @@
 
 	<target name="init">
 		<tstamp/>
-		<buildnumber/>
-		<!--
 		<property environment="env"/>
 		<property name="build.number" value="${env.BUILD_NUMBER}"/>
-		-->
 		<property file="build.properties"/>
-		<property name="project.zip" value="${ant.project.name}_${Vic.version}_${build.number}.zip"/>
+		<property name="version.number" value="${Vic.version}.${build.number}" />
+		<property name="project.zip" value="${ant.project.name}_${version.number}.zip"/>
 	</target>
 
 	<target name="clean" description="Cleans old builds">
@@ -27,7 +25,7 @@
 				<include name="Readme.txt"/>
 			</fileset>
 			<filterset>
-				<filter token="VERSION" value="${Vic.version} (${build.number})"/>
+				<filter token="VERSION" value="${version.number}"/>
 			</filterset>
 		</copy>
 		<zip 	destfile="dest/${project.zip}"

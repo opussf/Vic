@@ -1,17 +1,7 @@
--- Colours
-COLOR_RED = "|cffff0000";
-COLOR_GREEN = "|cff00ff00";
-COLOR_BLUE = "|cff0000ff";
-COLOR_PURPLE = "|cff700090";
-COLOR_YELLOW = "|cffffff00";
-COLOR_ORANGE = "|cffff6d00";
-COLOR_GREY = "|cff808080";
-COLOR_GOLD = "|cffcfb52b";
-COLOR_NEON_BLUE = "|cff4d4dff";
-COLOR_END = "|r";
-
+VIC_MSG_VERSION = GetAddOnMetadata("Vic","Version");
+	
 Vic = {};
-Vic_options = {["enabled"] = true,};
+Vic_options = {["enabled"] = true,["symbol"] = "star",};
 Vic.raidIconValues = {
 	["star"] = 1,
 	["circle"] = 2,
@@ -25,9 +15,24 @@ Vic.raidIconValues = {
 
 function Vic.OnLoad()
 	VicFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+	VicFrame:RegisterEvent("VARIABLES_LOADED");
 	
 	SLASH_VIC1 = "/vic";
-	SlashCmdList["VIC"] = function(msg) Vic.Command(msg); end
+	SlashCmdList["VIC"] = Vic.Command;
+end
+
+function Vic.OptionsOnLoad(frame)
+	local ristring = '|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0:0:0:-1|t %s'
+
+	frame.name = "Victorious Reporter";
+	VicOptionsFrame_Title:SetText("Victorious Reporter "..VIC_MSG_VERSION);
+	for symbol, v in pairs(Vic.raidIconValues) do
+		getglobal("VicOptionsFrame_RadioSymbol"..v.."Text"):SetText(ristring:format(v, symbol));
+	end
+	frame.okay = Vic.OptionsOkay;
+	frame.cancel = Vic.OptionsCancel;
+	
+	InterfaceOptions_AddCategory(frame);
 end
 
 function Vic.PartyPrint( msg )
@@ -51,106 +56,82 @@ function Vic.Print( msg, showName)
 	DEFAULT_CHAT_FRAME:AddMessage( msg );
 end
 
+function Vic.VARIABLES_LOADED(...)
+	VicFrame:UnregisterEvent("VARIABLES_LOADED");
+	Vic.OptionsSetOptions();
+end
+
 function Vic.COMBAT_LOG_EVENT_UNFILTERED(...)
 	-- http://www.wowwiki.com/API_COMBAT_LOG_EVENT
 	_, _, Vic.event = select(1, ...);  -- frame, ts, event
-	local _, srcName, _, _, _, _, spellID, spellName = select(4, ...);
-	--local srcGUID, srcName, srcFlags, targetGUID, targetName, targetFlags = select(4, ...);
-	if (Vic_options.enabled and spellID == 32216) then
+	_, _, Vic.srcName, _, _, _, _, _, _, Vic.spellID, Vic.spellName = select(4, ...);
+	if (Vic_options.enabled and Vic.spellID == 32216) then
+		--Vic.Print(Vic.event .. ":"..Vic.spellID..":"..Vic.spellName..":"..Vic.srcName);
 		if (string.find(Vic.event, "SPELL_AURA_APPLIED")) then
 			if Vic_options.symbol then
-				SetRaidTarget(srcName, Vic.raidIconValues[Vic_options.symbol]);
+				SetRaidTarget(Vic.srcName, Vic.raidIconValues[Vic_options.symbol]);
 			else
-				Vic.PartyPrint(spellName.." applied to "..srcName);
+				Vic.PartyPrint(Vic.spellName.." applied to "..Vic.srcName);
 			end
 		elseif (string.find(Vic.event, "SPELL_AURA_REFRESH")) then
 			if Vic_options.symbol then
-				SetRaidTarget(srcName, Vic.raidIconValues[Vic_options.symbol]);
+				SetRaidTarget(Vic.srcName, Vic.raidIconValues[Vic_options.symbol]);
 			else
-				Vic.PartyPrint(spellName.." refreshed on "..srcName);
+				Vic.PartyPrint(Vic.spellName.." refreshed on "..Vic.srcName);
 			end
 		elseif (string.find(Vic.event, "SPELL_AURA_REMOVED")) then
 			if Vic_options.symbol then
-				SetRaidTarget(srcName, 0);
+				SetRaidTarget(Vic.srcName, 0);
 			else
-				Vic.PartyPrint(spellName.." removed from "..srcName);
+				Vic.PartyPrint(Vic.spellName.." removed from "..Vic.srcName);
 			end
 		else
-			Vic.Print(Vic.event.." :: "..spellName);
+			Vic.Print(Vic.event.." :: "..Vic.spellName);
 		end
 	end
 end
 
-Vic.commandList = {
-	["enable"] = {
-		["func"] = function()
-				Vic_options.enabled = true;
-				Vic.Print("Vic is now enabled.");
-			end,
-		["help"] = "Enable",
-	},
-	["disable"] = {
-		["func"] = function()
-				Vic_options.enabled = nil;
-				Vic.Print("Vic is now disabled.");
-			end,
-		["help"] = "Disable",
-	},
-	["status"] = {
-		["func"] = function()
-				outStr = "disabled.";
-				outStr = Vic_options.enabled and "enabled.";
-				Vic.Print("Vic status is "..outStr);
-				if Vic_options.symbol then
-					Vic.Print("Vic will set {"..Vic_options.symbol.."} when active.");
-				else
-					Vic.Print("No symbol will be set.");
-				end
-			end,
-		["help"] = "Show status",
-	},
-	["help"] = {
-		["func"] = function()
-				for k, val in pairs(Vic.commandList) do
-					Vic.Print(string.format("%s %-8s -> %s", SLASH_VIC1, k, val.help));
-				end
-			end,
-		["help"] = "Print this help.",
-	},
-	["symbol"] = {
-		["func"] = function( param )
-				if Vic.raidIconValues[param] then
-					Vic_options.symbol = param;
-					Vic.Print("Symbol set to: {"..param.."}");
-				else
-					Vic_options.symbol = nil;
-					Vic.Print("No Symbol will be set");
-				end
-			end,
-		["help"] = "Sets the given symbol to put on the warrior.",
-	},
-}
+function Vic.OptionsSetOptions()
+	for text, v in pairs(Vic.raidIconValues) do
+		if text == Vic_options["symbol"] then
+			getglobal("VicOptionsFrame_RadioSymbol"..v):SetChecked(true);
+		else
+			getglobal("VicOptionsFrame_RadioSymbol"..v):SetChecked(false);
+		end
+	end
+	if Vic_options["enabled"] then
+		VicOptionsFrame_EnableBox:SetChecked(true);
+	end
+end
+
+function Vic.OptionsRadioButtonClick(button)
+	--Vic.Print("Post Click:"..button:GetName():sub(-1));
+	clickValue = tonumber(button:GetName():sub(-1));
+	for _,v in pairs(Vic.raidIconValues) do
+		if v == clickValue then
+			getglobal("VicOptionsFrame_RadioSymbol"..v):SetChecked(true);
+		else
+			getglobal("VicOptionsFrame_RadioSymbol"..v):SetChecked(false);
+		end
+	end
+end
+
+function Vic.OptionsOkay()
+	--Vic.Print("OKAY");
+	for symbol,v in pairs(Vic.raidIconValues) do
+		if getglobal("VicOptionsFrame_RadioSymbol"..v):GetChecked() then
+			--Vic.Print(symbol.." is checked.");
+			Vic_options["symbol"] = symbol;
+		end
+	end
+	Vic_options.enabled = VicOptionsFrame_EnableBox:GetChecked();
+end
+
+function Vic.OptionsCancel()
+	-- When options CANCEL is pressed.
+	Vic.OptionsSetOptions();
+end
 
 function Vic.Command(msg)
-	local cmd, param = Vic.ParseCmd(msg);
-	cmd = string.lower(cmd);
-	
-	local cmdFunc = Vic.commandList[cmd];
-	
-	if cmdFunc then
-		cmdFunc.func(param);
-	else
-		Vic.commandList.help.func();
-	end
-end
-
-function Vic.ParseCmd(msg)
-	if msg then
-		local a,b,c = strfind(msg, "(%S+)");  --contiguous string of non-space characters
-		if a then
-			return c, strsub(msg, b+2);
-		else
-			return "";
-		end
-	end
+	InterfaceOptionsFrame_OpenToCategory("Victorious Reporter");
 end

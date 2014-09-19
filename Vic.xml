@@ -12,5 +12,92 @@
 			</OnEvent>
 		</Scripts>
 	</Frame>
+	
+	<CheckButton name="Vic_SymbolRadioButtonTemplate" inherits="UIRadioButtonTemplate" virtual="true">
+		<Scripts>
+			<PostClick>Vic.OptionsRadioButtonClick(self)</PostClick>
+		</Scripts>
+	</CheckButton>
+	
+	<Frame name="VicOptionsFrame">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parent_Title" inherits="GameFontNormalLarge">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset><AbsDimension x="16" y="-16"/></Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_SubTitle" inherits="GameFontHighlightSmall"
+						text="Sets a raid icon on a warrior when they gain Victorious buff.">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parent_Title" relativePoint="BOTTOMLEFT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<CheckButton name="$parent_EnableBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent">
+						<Offset>
+							<AbsDimension x="20" y="-100"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad> getglobal(self:GetName().."Text"):SetText("Enabled"); </OnLoad>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol1" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_EnableBox" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol2" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol1" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol3" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol2" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol4" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol3" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol5" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol4" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol6" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol5" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol7" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol6" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_RadioSymbol8" inherits="Vic_SymbolRadioButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_RadioSymbol7" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</CheckButton>
+
+			
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				Vic.OptionsOnLoad(self)
+			</OnLoad>
+		</Scripts>
+	</Frame>
 </Ui>
 

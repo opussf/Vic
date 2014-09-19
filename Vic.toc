@@ -1,9 +1,9 @@
-## Interface: 40000
+## Interface: 40300
 ## Title: Victorious Reporter
-## Notes: reports when Victorious is on a warrior tank
+## Notes: Shows when Victorious is on a warrior
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
-## Description: reports when Victorious is on a warrior tank
+## Description: Places a raid icon on a warrior when they have the Victorious buff.
 ## SavedVariables: Vic_options
 
 Vic.lua
