@@ -3,10 +3,38 @@
 	<tstamp/>
 	<property file="build.properties"/>
 	<property environment="env"/>
+	<property name="env.BUILD_NUMBER" value=""/>
+	<property name="build.number" value=""/>
+	<!--  Pull git repo info -->
+	<exec executable="git" dir="." outputproperty="git.revision" failifexecutionfails="false" errorproperty="">
+		<arg line="describe --tags --always HEAD" />
+	</exec>
+	<condition property="repository.version" value="${git.revision}" else="unknown">
+		<and>
+			<isset property="git.revision"/>
+			<length string="${git.revision}" trim="yes" length="0" when="greater"/>
+		</and>
+	</condition>
+	<!-- find gitbranch -->
+	<exec executable="git" dir="." outputproperty="git.branch" failifexecutionfails="false" errorproperty="">
+		<arg line="rev-parse --abbrev-ref HEAD"/>
+	</exec>
+	<condition property="branch" value="-${git.branch}" else="">
+		<and>
+			<isset property="git.branch"/>
+			<not>
+				<or>
+					<equals arg1="${git.branch}" arg2="master"/>
+					<equals arg1="${git.branch}" arg2="HEAD"/>
+				</or>
+			</not>
+		</and>
+	</condition>
 
-	<property name="env.BUILD_NUMBER" value="LOCAL"/>
-	<property name="build.number" value="${env.BUILD_NUMBER}"/>
-	<property name="version.number" value="${Vic.version}.${build.number}"/>
+	<property name="version.number" value="${repository.version}${branch}${build.number}"/>
+	<echo>Building: ${version.number}</echo>
+	<!-- end git repo info -->
+
 	<property name="project.zip" value="${ant.project.name}_${version.number}.zip"/>
 	<property name="test.dir" location="test"/>
 
@@ -19,26 +47,25 @@
 	</condition>
 
 	<target name="clean" description="Cleans old builds">
-		<delete dir="${target.dir}" verbose="true" failonerror="false"/>
+		<delete dir="target" verbose="true"/>
 	</target>
 
 	<target name="changelog" description="Creates a changelog">
 		<mkdir dir="${working.dir}"/>
 		<exec executable="git" dir=".">
-			<arg line="log --graph --pretty=format:'%h %ci - %d %s &lt;%an&gt;' master.."/>
+			<arg line="log --graph --pretty=format:'%h %ci - %d %s &lt;%an&gt;' ${git.tag}.."/>
 			<redirector output="${working.dir}/changelog.txt"/>
 		</exec>
 	</target>
 
-	<target name="package" depends="changelog, test" description="Creates a deploy package">
+	<target name="package" depends="changelog, test" description="Create a deploy package">
 		<property name="package.dir" location="${working.dir}/${ant.project.name}"/>
-
-		<copy 	todir="${package.dir}/${ant.project.name}">
+		<copy	todir="${package.dir}">
 			<fileset dir="src">
 				<include name="*.lua"/>
 				<include name="*.toc"/>
 				<include name="*.xml"/>
-				<include name="Readme.txt"/>
+				<include name="*.txt"/>
 			</fileset>
 			<fileset dir="${working.dir}">
 				<include name="*.txt"/>
@@ -56,8 +83,16 @@
 		<echo message="${zip.md5}" />
 	</target>
 
-	<target name="wow" depends="" description="copy files to currnet wow install">
-		<property name="addon.dir" location="${addon.dir.base}/${ant.project.name}"/>
+	<target name="web.deploy" description="deploys the web site">
+		<mkdir	dir="${target.dir}/web"/>
+		<zip	destfile="${target.dir}/${ant.project.name}-web.zip"
+				basedir="site"
+				includes="**"/>
+		<delete dir="${target.dir}/web" verbose="true"/>
+	</target>
+
+	<target name="wow" depends="test" description="copy files to currnet wow install">
+		<property name="addon.dir" location="/Applications/World of Warcraft/Interface/Addons/${ant.project.name}"/>
 		<mkdir dir="${addon.dir}"/>
 		<copy todir="${addon.dir}">
 			<fileset dir="src">
@@ -85,6 +120,16 @@
 				</not>
 			</condition>
 		</fail>
+	</target>
+
+	<target name="report" depends="test" description="test reports">
+		<junitreport todir="${report.dir}">
+			<fileset dir="${report.dir}">
+				<include name="testOut.xml"/>
+			</fileset>
+			<report todir="${report.dir}/html"
+					format="noframes"/>
+		</junitreport>
 	</target>
 
 	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
