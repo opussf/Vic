@@ -16,6 +16,9 @@ local itemDB = {
 --myInventory = { ["9999"] = 52, }
 myInventory = {}
 myCurrencies = {}
+-- set one of these to the number of people in the raid or party to reflect being in group or raid.
+-- roster should be an array for GetRaidRosterInfo
+myParty = { ["group"] = nil, ["raid"] = nil, ["roster"] = {} }
 outMail = {}
 globals = {}
 accountExpansionLevel = 4   -- 0 to 5
@@ -25,7 +28,7 @@ Items = {
 	["6742"] = {["name"] = "UnBroken Fang", ["link"] = "|cff9d9d9d|Hitem:6742:0:0:0:0:0:0:0:80:0:0|h[UnBroken Fang]|h|r"},
 	["22261"]= {["name"] = "Love Fool", ["link"] = "|cff9d9d9d|Hitem:22261:0:0:0:0:0:0:0:80:0:0|h[Love Fool]|h|r"},
 	["49927"]= {["name"] = "Love Token", ["link"] = ""},
-	["74661"]= {["name"] = "Black Pepper", ["link"] = "﻿|cffffffff|Hitem:74661:0:0:0:0:0:0:0:90:0:0|h[Black Pepper]|h|r"},
+	["74661"]= {["name"] = "Black Pepper", ["link"] = "|cffffffff|Hitem:74661:0:0:0:0:0:0:0:90:0:0|h[Black Pepper]|h|r"},
 	["85216"]= {["name"] = "Enigma Seed", ["link"]= "|cffffffff|Hitem:85216:0:0:0:0:0:0:0:90:0:0|h[Enigma Seed]|h|r"},
 }
 
@@ -75,7 +78,6 @@ strtolower = string.lower
 time = os.time
 date = os.date
 max = math.max
-min = math.min
 random = math.random
 tinsert = table.insert
 
@@ -297,6 +299,16 @@ function GetMerchantNumItems()
 	for _ in pairs(MerchantInventory) do count = count + 1 	end
 	return count
 end
+function GetNumGroupMembers()
+	-- http://www.wowwiki.com/API_GetNumGroupMembers
+	-- Returns number of people (include self) in raid or party, 0 if not in raid / party
+	if myParty.raid then
+		return #myParty.roster
+	else
+		return #myParty.roster
+	end
+	return 0
+end
 function GetNumRoutes( nodeId )
 	-- http://wowprogramming.com/docs/api/GetNumRoutes
 	-- returns numHops
@@ -307,6 +319,14 @@ function GetNumTradeSkills( )
 	local count = 0
 	for _ in pairs( TradeSkillItems ) do count = count + 1 end
 	return count
+end
+function GetRaidRosterInfo( raidIndex )
+	-- http://www.wowwiki.com/API_GetRaidRosterInfo
+	-- returns name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
+	if (myParty.raid or myParty.party) and myParty.roster then
+		return unpack(myParty.roster[raidIndex]) -- unpack returns the array as seperate values
+	end
+
 end
 function GetRealmName()
 	return "testRealm"
@@ -356,6 +376,13 @@ function IsInGuild()
 	-- http://www.wowwiki.com/API_IsInGuild
 	-- 1, nil boolean return of being in guild
 	return 1
+end
+function IsInRaid()
+	-- http://www.wowwiki.com/API_IsInRaid
+	-- 1, nill boolean return of being in raid
+	-- myParty = { ["group"] = nil, ["raid"] = nil } -- set one of these to true to reflect being in group or raid.
+
+	return ( myParty["raid"] and 1 or nil )
 end
 function NumTaxiNodes()
 	-- http://www.wowwiki.com/API_NumTaxiNodes
